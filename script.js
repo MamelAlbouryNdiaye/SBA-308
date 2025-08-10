@@ -1,7 +1,7 @@
-// Les données fournies (pour rappel)
+// The provided course information.
 const CourseInfo = {
   id: 451,
-  name: "Introduction to JavaScript"
+  name: "Introduction to JavaScript",
 };
 
 const AssignmentGroup = {
@@ -14,21 +14,21 @@ const AssignmentGroup = {
       id: 1,
       name: "Declare a Variable",
       due_at: "2023-01-25",
-      points_possible: 50
+      points_possible: 50,
     },
     {
       id: 2,
       name: "Write a Function",
       due_at: "2023-02-27",
-      points_possible: 150
+      points_possible: 150,
     },
     {
       id: 3,
       name: "Code the World",
       due_at: "3156-11-15",
-      points_possible: 500
-    }
-  ]
+      points_possible: 500,
+    },
+  ],
 };
 
 const LearnerSubmissions = [
@@ -37,41 +37,41 @@ const LearnerSubmissions = [
     assignment_id: 1,
     submission: {
       submitted_at: "2023-01-25",
-      score: 47
-    }
+      score: 47,
+    },
   },
   {
     learner_id: 125,
     assignment_id: 2,
     submission: {
       submitted_at: "2023-02-12",
-      score: 150
-    }
+      score: 150,
+    },
   },
   {
     learner_id: 125,
     assignment_id: 3,
     submission: {
       submitted_at: "2023-01-25",
-      score: 400
-    }
+      score: 400,
+    },
   },
   {
     learner_id: 132,
     assignment_id: 1,
     submission: {
       submitted_at: "2023-01-24",
-      score: 39
-    }
+      score: 39,
+    },
   },
   {
     learner_id: 132,
     assignment_id: 2,
     submission: {
       submitted_at: "2023-03-07",
-      score: 140
-    }
-  }
+      score: 140,
+    },
+  },
 ];
 
 function getLearnerData(course, ag, submissions) {
@@ -113,7 +113,8 @@ function getLearnerData(course, ag, submissions) {
     function organizeAssignmentsById(assignments) {
       let organized = {};
 
-      for (let assign of assignments) { // Loop (First type : for...of)  
+      for (let assign of assignments) {
+        // Loop (First type : for...of)
         if (!assign.id) {
           console.warn("Assignment without ID skipped");
           continue; // key-word continue
@@ -128,7 +129,8 @@ function getLearnerData(course, ag, submissions) {
 
     let assignmentsMap = organizeAssignmentsById(validAssignments);
 
-    Object.keys(assignmentsMap).forEach((id) => { // Loop : second type
+    Object.keys(assignmentsMap).forEach((id) => {
+      // Loop : second type
       console.log(`Assignment ${id} ready for lookup`);
     });
 
@@ -143,7 +145,9 @@ function getLearnerData(course, ag, submissions) {
 
         // Skip if assignment invalid (not in assignmentsMap)
         if (!assignment) {
-          console.warn(`Assignment ID ${sub.assignment_id} non valide, ignoré.`);
+          console.warn(
+            `Assignment ID ${sub.assignment_id} non valide, ignoré.`
+          );
           continue;
         }
 
@@ -151,7 +155,9 @@ function getLearnerData(course, ag, submissions) {
         const pointsPossible = assignment.points_possible;
         const score = sub.submission.score;
         if (typeof score !== "number" || typeof pointsPossible !== "number") {
-          console.warn(`Score ou points invalides pour learner ${learnerId}, assignment ${assignment.id}`);
+          console.warn(
+            `Score ou points invalides pour learner ${learnerId}, assignment ${assignment.id}`
+          );
           continue;
         }
 
@@ -165,18 +171,21 @@ function getLearnerData(course, ag, submissions) {
 
         // Initialize the learner object if it does not yet exist
         if (!learnersMap[learnerId]) {
-          learnersMap[learnerId] = { id: learnerId, scores: {}, totalWeightedScore: 0, totalPoints: 0 };
+          learnersMap[learnerId] = {
+            id: learnerId,
+            scores: {},
+            totalWeightedScore: 0,
+            totalPoints: 0,
+          };
         }
 
-        
-       // Calculation of the normalized score (in percentage)
+        // Calculation of the normalized score (in percentage)
         const normalizedScore = effectiveScore / pointsPossible;
         learnersMap[learnerId].scores[assignment.id] = normalizedScore;
 
         // Cumulate for weighted average (weighting by points_possible)
         learnersMap[learnerId].totalWeightedScore += effectiveScore;
         learnersMap[learnerId].totalPoints += pointsPossible;
-
       } catch (err) {
         console.error("Erreur dans la boucle des soumissions:", err.message);
       }
@@ -195,15 +204,14 @@ function getLearnerData(course, ag, submissions) {
       learnersResults.push({
         id: learnerData.id,
         avg: avg,
-        ...learnerData.scores
+        ...learnerData.scores,
       });
     }
 
     ////////////////////////////////////////****** STEPE 5 ////////////////////////////////
     // Here, the final construction of the object is already done in Step 4
-   // We can return directly
+    // We can return directly
     return learnersResults;
-
   } catch (error) {
     console.error("Error in getLearnerData :", error.message);
     return [];
