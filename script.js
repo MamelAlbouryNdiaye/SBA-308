@@ -95,22 +95,21 @@ function getLearnerData(course, ag, submissions) {
   //   ];
 
   /////////////// **** FIRST STEP ***** //////////////////////////////////
+ 
   try {
     if (ag.course_id !== course.id) {
-      //link betwin coure and AssignmentGroup
       throw new Error("The AssignmentGroup does not match the course provided");
     }
 
     const today = new Date();
 
-    // Filtering the dues assignment
+    //////////// *** ÉTAPE 1 //////////////////////
     const assignmentsDue = ag.assignments.filter((assign) => {
       if (!assign.due_at) return false;
       let dueDate = new Date(assign.due_at);
       return dueDate <= today;
     });
 
-    // Filter those with valid points_possible
     const validAssignments = assignmentsDue.filter((assign) => {
       if (
         typeof assign.points_possible !== "number" ||
@@ -121,17 +120,43 @@ function getLearnerData(course, ag, submissions) {
         );
         return false;
       }
-      return true; //else statement
+      return true;
     });
+
     console.log("\n Step 1 - Valid Assignments :", validAssignments);
 
-    return validAssignments;
+    ////////////**** Step 2 : Organize ////////////////////
+    function organizeAssignmentsById(assignments) {
+      let organized = {};
+
+      for (let assign of assignments) { // Loop : first type
+        if (!assign.id) {
+          console.warn("Assignment without ID skipped");
+          continue; // control key-word
+        }
+        // We create a new object without the "description" property (deletion example)
+        let { description, ...assignData } = assign;
+        organized[assign.id] = assignData;
+      }
+
+      return organized;
+    }
+
+    // Creating a quick search structure by ID
+    let assignmentsMap = organizeAssignmentsById(validAssignments);
+
+    // Example of using another type of loop for verification
+    Object.keys(assignmentsMap).forEach((id) => { // Loop : 2nd type
+      console.log(`Assignment ${id} ready for lookup`);
+    });
+
+    return assignmentsMap;
+
   } catch (error) {
     console.error("Error in getLearnerData :", error.message);
-    return [];
+    return {};
   }
 }
 
 const result = getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
-
-console.log(result);
+console.log("\n Step 2 - Organized Assignments Map:", result);

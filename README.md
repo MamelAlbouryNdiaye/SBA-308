@@ -23,6 +23,22 @@ const validAssignments = assignmentsDue.filter((assign) => {
      TODO...
 })
 ```
+## Step 2 : Organize assignments to find them easily
+ What we have inside : (For the requirement)
+  ```
+    function organizeAssignmentsById(assignments) {
+        control key-word : continue
+        Loops :
+        first type : for of loop
+        second type : forEach()
+        ...
+
+    }
+  ```
+   ### 
+  
+
+
    
    
 
