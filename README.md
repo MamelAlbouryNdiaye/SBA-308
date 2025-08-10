@@ -27,15 +27,38 @@ const validAssignments = assignmentsDue.filter((assign) => {
  What we have inside : (For the requirement)
   ```
     function organizeAssignmentsById(assignments) {
-        control key-word : continue
+        * Organization: Transforms the array of filtered assignments into an {id: data} object for quick searches.
+
+        * Loop control: Continue to skip assignments without an ID.
         Loops :
-        first type : for of loop
-        second type : forEach()
-        ...
+        * first type : for...of
+        * second type : forEach()
+        * Manipulation/deletion: Removes the description property to streamline the stored data.
+        * Utility function organizeAssignmentsById() isolates the transformation logic.
 
     }
   ```
-   ### 
+## Step 3: Loop through all submissions:
+
+  * Ignore those whose assignment is not in the map (invalid).
+
+  * Manage late penalties (-10% of possible points).
+
+  * Normalize scores between 0 and 1 (score/possible_points).
+
+  * Store in an intermediate object per learner.
+
+## Step 4: Calculate the weighted average per learner: 
+
+sum of scores  possible points / sum of possible points.
+
+## Step 5: Build and return the final array of objects 
+
+With id, avg, and a key for each assignment with the grade in %.
+
+
+
+
   
 
 

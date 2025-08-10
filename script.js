@@ -1,10 +1,9 @@
-// The provided course information.
+// Les données fournies (pour rappel)
 const CourseInfo = {
   id: 451,
-  name: "Introduction to JavaScript",
+  name: "Introduction to JavaScript"
 };
 
-// The provided assignment group.
 const AssignmentGroup = {
   id: 12345,
   name: "Fundamentals of JavaScript",
@@ -15,101 +14,84 @@ const AssignmentGroup = {
       id: 1,
       name: "Declare a Variable",
       due_at: "2023-01-25",
-      points_possible: 50,
+      points_possible: 50
     },
     {
       id: 2,
       name: "Write a Function",
       due_at: "2023-02-27",
-      points_possible: 150,
+      points_possible: 150
     },
     {
       id: 3,
       name: "Code the World",
       due_at: "3156-11-15",
-      points_possible: 500,
-    },
-  ],
+      points_possible: 500
+    }
+  ]
 };
 
-// The provided learner submission data.
 const LearnerSubmissions = [
   {
     learner_id: 125,
     assignment_id: 1,
     submission: {
       submitted_at: "2023-01-25",
-      score: 47,
-    },
+      score: 47
+    }
   },
   {
     learner_id: 125,
     assignment_id: 2,
     submission: {
       submitted_at: "2023-02-12",
-      score: 150,
-    },
+      score: 150
+    }
   },
   {
     learner_id: 125,
     assignment_id: 3,
     submission: {
       submitted_at: "2023-01-25",
-      score: 400,
-    },
+      score: 400
+    }
   },
   {
     learner_id: 132,
     assignment_id: 1,
     submission: {
       submitted_at: "2023-01-24",
-      score: 39,
-    },
+      score: 39
+    }
   },
   {
     learner_id: 132,
     assignment_id: 2,
     submission: {
       submitted_at: "2023-03-07",
-      score: 140,
-    },
-  },
+      score: 140
+    }
+  }
 ];
 
 function getLearnerData(course, ag, submissions) {
-  // here, we would process this data to achieve the desired result.
-
-  //   const result = [
-  //     {
-  //       id: 125,
-  //       avg: 0.985, // (47 + 150) / (50 + 150)
-  //       1: 0.94, // 47 / 50
-  //       2: 1.0 // 150 / 150
-  //     },
-  //     {
-  //       id: 132,
-  //       avg: 0.82, // (39 + 125) / (50 + 150)
-  //       1: 0.78, // 39 / 50
-  //       2: 0.833 // late: (140 - 15) / 150
-  //     }
-  //   ];
-
-  /////////////// **** FIRST STEP ***** //////////////////////////////////
- 
   try {
+    ////////////////////////////////////* STEP 1 /////////////////////////////////////
+    // Check that the assignment group matches the course
     if (ag.course_id !== course.id) {
       throw new Error("The AssignmentGroup does not match the course provided");
     }
 
     const today = new Date();
 
-    //////////// *** ÉTAPE 1 //////////////////////
+    // Filter assignments already due (due_at <= today)
     const assignmentsDue = ag.assignments.filter((assign) => {
       if (!assign.due_at) return false;
       let dueDate = new Date(assign.due_at);
       return dueDate <= today;
     });
 
+    // Keep only those with valid points_possible (>0)
     const validAssignments = assignmentsDue.filter((assign) => {
       if (
         typeof assign.points_possible !== "number" ||
@@ -125,16 +107,18 @@ function getLearnerData(course, ag, submissions) {
 
     console.log("\n Step 1 - Valid Assignments :", validAssignments);
 
-    ////////////**** Step 2 : Organize ////////////////////
+    ////////////////////////////** STEPE 2 ///////////////////////////////////////////
+
+    //Organize assignments by ID for quick access
     function organizeAssignmentsById(assignments) {
       let organized = {};
 
-      for (let assign of assignments) { // Loop : first type
+      for (let assign of assignments) { // Loop (First type : for...of)  
         if (!assign.id) {
           console.warn("Assignment without ID skipped");
-          continue; // control key-word
+          continue; // key-word continue
         }
-        // We create a new object without the "description" property (deletion example)
+        // delete a property example: description (nonexistent here)
         let { description, ...assignData } = assign;
         organized[assign.id] = assignData;
       }
@@ -142,21 +126,90 @@ function getLearnerData(course, ag, submissions) {
       return organized;
     }
 
-    // Creating a quick search structure by ID
     let assignmentsMap = organizeAssignmentsById(validAssignments);
 
-    // Example of using another type of loop for verification
-    Object.keys(assignmentsMap).forEach((id) => { // Loop : 2nd type
+    Object.keys(assignmentsMap).forEach((id) => { // Loop : second type
       console.log(`Assignment ${id} ready for lookup`);
     });
 
-    return assignmentsMap;
+    //////////////////////////*** STEPE 3 ///////////////////////////////////////////////
+    // Browse submissions and calculate normalized scores per assignment
+    let learnersMap = {}; // key = learner_id, value = object with scores
+
+    for (let sub of submissions) {
+      try {
+        const learnerId = sub.learner_id;
+        const assignment = assignmentsMap[sub.assignment_id];
+
+        // Skip if assignment invalid (not in assignmentsMap)
+        if (!assignment) {
+          console.warn(`Assignment ID ${sub.assignment_id} non valide, ignoré.`);
+          continue;
+        }
+
+        // Data validation
+        const pointsPossible = assignment.points_possible;
+        const score = sub.submission.score;
+        if (typeof score !== "number" || typeof pointsPossible !== "number") {
+          console.warn(`Score ou points invalides pour learner ${learnerId}, assignment ${assignment.id}`);
+          continue;
+        }
+
+        // Late penalty calculation (10% points possible) if submitted after the due date
+        const dueDate = new Date(assignment.due_at);
+        const submittedAt = new Date(sub.submission.submitted_at);
+        let effectiveScore = score;
+        if (submittedAt > dueDate) {
+          effectiveScore = Math.max(0, score - 0.1 * pointsPossible);
+        }
+
+        // Initialize the learner object if it does not yet exist
+        if (!learnersMap[learnerId]) {
+          learnersMap[learnerId] = { id: learnerId, scores: {}, totalWeightedScore: 0, totalPoints: 0 };
+        }
+
+        
+       // Calculation of the normalized score (in percentage)
+        const normalizedScore = effectiveScore / pointsPossible;
+        learnersMap[learnerId].scores[assignment.id] = normalizedScore;
+
+        // Cumulate for weighted average (weighting by points_possible)
+        learnersMap[learnerId].totalWeightedScore += effectiveScore;
+        learnersMap[learnerId].totalPoints += pointsPossible;
+
+      } catch (err) {
+        console.error("Erreur dans la boucle des soumissions:", err.message);
+      }
+    }
+
+    ///////////////////////////////////////////**** STEPE 4 ///////////////////////////////
+    // Calculate the final weighted average for each learner
+    let learnersResults = [];
+
+    for (let learnerId in learnersMap) {
+      let learnerData = learnersMap[learnerId];
+      let avg = 0;
+      if (learnerData.totalPoints > 0) {
+        avg = learnerData.totalWeightedScore / learnerData.totalPoints;
+      }
+      learnersResults.push({
+        id: learnerData.id,
+        avg: avg,
+        ...learnerData.scores
+      });
+    }
+
+    ////////////////////////////////////////****** STEPE 5 ////////////////////////////////
+    // Here, the final construction of the object is already done in Step 4
+   // We can return directly
+    return learnersResults;
 
   } catch (error) {
     console.error("Error in getLearnerData :", error.message);
-    return {};
+    return [];
   }
 }
 
+// Execution and display of the result
 const result = getLearnerData(CourseInfo, AssignmentGroup, LearnerSubmissions);
-console.log("\n Step 2 - Organized Assignments Map:", result);
+console.log("\n Résultat final :", result);
